@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Jogador {
+  id            String @id @default(uuid())
+  nome          String 
+  idade         Int
+  posicao       String
+  nacionalidade String
+  created_at    DateTime @default(now())
+  times         JogadorTime[] 
+
+  @@map("jogadores")
+}
+
+model Time {
+  id              String @id @default(uuid())
+  nome            String 
+  ano_de_fundacao Int
+  pais            String
+  tecnico         String @unique
+  created_at      DateTime @default(now())
+  jogadores       JogadorTime[] 
+  partidasCasa    Partida[] @relation("partidasCasa")
+  partidasVisitante Partida[] @relation("partidasVisitante")
+
+  @@map("times")
+}
+
+model Partida {
+  id              String @id @default(uuid())
+  data            String 
+  local           String
+  placar          String
+  timeDaCasaId    String
+  timeVisitanteId String
+  timeDaCasa      Time @relation("partidasCasa", fields: [timeDaCasaId], references: [id])
+  timeVisitante   Time @relation("partidasVisitante", fields: [timeVisitanteId], references: [id])
+
+  @@map("partidas")
+}
+
+model JogadorTime {
+  jogadorId String
+  timeId    String
+
+  jogador  Jogador @relation(fields: [jogadorId], references: [id])
+  time     Time @relation(fields: [timeId], references: [id])
+
+  @@id([jogadorId, timeId])
+}
